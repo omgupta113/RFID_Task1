@@ -1,0 +1,105 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro"
+xmlns:ignition="http://ignition.gazebo.org/xmlschema">
+
+    <!-- Gazebo Harmonic uses gz: prefix instead of gazebo: -->
+    <xacro:macro name="gz_material" params="link color">
+        <gazebo reference="${link}">
+            <material>Gazebo/${color}</material>
+        </gazebo>
+    </xacro:macro>
+
+    <!-- Differential Drive plugin for Gazebo Harmonic -->
+    <gazebo>
+        <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+            <topic>joint_states</topic>
+        </plugin>
+
+
+        <plugin
+            filename="gz-sim-diff-drive-system"
+            name="gz::sim::systems::DiffDrive">
+            <left_joint>base_left_wheel_joint</left_joint>
+            <right_joint>base_right_wheel_joint</right_joint>
+            <wheel_separation>0.5</wheel_separation>
+            <wheel_radius>0.055</wheel_radius>
+            <odom_publish_frequency>30</odom_publish_frequency>
+            <publish_odom_tf>false</publish_odom_tf>
+            <publish_wheel_tf>true</publish_wheel_tf>
+            <odom_topic>odom_1</odom_topic>
+            <topic>cmd_vel</topic>
+            <child_frame_id>base_footprint</child_frame_id>
+            <frame_id>odom</frame_id>
+        </plugin>
+        <plugin filename="ignition-gazebo-odometry-publisher-system" name="ignition::gazebo::systems::OdometryPublisher">
+            <dimensions>2</dimensions>
+            <robot_base_frame>base_footprint</robot_base_frame>
+            <odom_topic>odom</odom_topic>
+            <odom_frame>odom</odom_frame>
+            <tf_topic>tf</tf_topic>
+            <odom_publish_frequency>30</odom_publish_frequency>
+        </plugin>
+
+    </gazebo>
+    
+
+    <!-- IMU sensor for Gazebo Harmonic -->
+    <!-- <gazebo reference="imu">
+        <sensor name="imu_sensor" type="imu">
+            <always_on>1</always_on>
+            <update_rate>30</update_rate>
+            <visualize>true</visualize>
+            <topic>imu/data</topic>
+            <plugin filename="libignition-gazebo-imu-system.so"
+                    name="ignition::gazebo::systems::Imu">
+                <initial_orientation_as_reference>false</initial_orientation_as_reference>
+            </plugin>
+        </sensor>
+    </gazebo> -->
+
+    <!-- Lidar sensor for Gazebo Harmonic - using standard lidar plugin instead of GPU -->
+    <gazebo reference="laser_frame">
+        <sensor name='gpu_lidar' type='gpu_lidar'>"
+            <!-- <pose relative_to='lidar_frame'>0 0 0 0 0 0</pose> -->
+            <pose>0 0 0 0 0 0</pose>
+            <topic>lidar</topic>
+            <update_rate>5</update_rate>
+            <ray>
+                <scan>
+                    <horizontal>
+                        <samples>640</samples>
+                        <resolution>1</resolution>
+                        <min_angle>-3.14</min_angle>
+                        <max_angle>3.14</max_angle>
+                    </horizontal>
+                    <vertical>
+                        <samples>1</samples>
+                        <resolution>0.01</resolution>
+                        <min_angle>0</min_angle>
+                        <max_angle>0</max_angle>
+                    </vertical>
+                </scan>
+                <range>
+                    <min>0.5</min>
+                    <max>10.0</max>
+                    <resolution>0.01</resolution>
+                </range>
+            </ray>
+            <always_on>1</always_on>
+            <visualize>true</visualize>
+            <gz_frame_id>laser_frame</gz_frame_id>
+        </sensor>
+    </gazebo>
+    <!-- DummySensor plugin -->
+    <gazebo reference="base_link">
+    <sensor name="a_dummy_sensor" type="custom" ignition:type="dummy">
+          <always_on>1</always_on>
+          <update_rate>1</update_rate>  <!-- Update every second -->
+          <visualize>true</visualize>
+          <ignition:dummy>
+            <message>Hello World</message>
+          </ignition:dummy>
+        </sensor>
+  </gazebo>
+
+</robot>
