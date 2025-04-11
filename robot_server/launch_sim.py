@@ -100,8 +100,8 @@ def generate_launch_description():
             'use_sim_time',
             default_value='true',
             description='Use simulation time if true'),
-        gazebo,
         rsp,
+        gazebo,
         bridge,
         spawn_entity,
         RegisterEventHandler(

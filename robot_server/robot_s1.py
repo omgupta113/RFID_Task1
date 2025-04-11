@@ -353,7 +353,7 @@ def terminate_process(process_name):
             # Still clear from registry as it might be zombie
             process_registry[process_name] = None
             return False
-    elif process_name=="localization" or process_name=="navigation":
+    else:
         localization_process = process_registry[process_name]
         if localization_process is not None:
                 try:
@@ -712,37 +712,33 @@ async def mapping_statu():
     return mapping_status
 
 @app.post("/mapping/save")
-async def save_map(map_name: str = Body(..., embed=True)):
-    """Save the current map to disk with the specified name"""
-    if mapping_status != "intiallized":
-        return {
-            "status": "error",
-            "message": "Mapping system is not initialized"
-        }
-    
+async def save_map_simple(map_name: str = Body(..., embed=True)):
+    """Save the current map using map_saver_cli from Nav2"""
     try:
-        # Call the save_map service from Nav2/SLAM toolbox
-        map_client = lifecycle_client.create_client(SaveMap, '/slam_toolbox/save_map')
+        # Create maps directory if it doesn't exist
+        maps_dir = os.path.join(os.path.dirname(__file__), "maps")
+        os.makedirs(maps_dir, exist_ok=True)
         
-        if not map_client.wait_for_service(timeout_sec=1.0):
-            return {
-                "status": "error",
-                "message": "Save map service is not available"
-            }
+        # Full path for the map
+        map_path = os.path.join(maps_dir, map_name)
         
-        # Create request
-        request = SaveMap.Request()
-        request.map_url = map_name  # Map name without extension
+        # Use map_saver_cli command to save the map
+        cmd = [
+            'ros2', 'run', 'nav2_map_server', 'map_saver_cli',
+            '-f', map_path
+        ]
         
-        # Send request
-        future = map_client.call_async(request)
+        # Run the command
+        process = subprocess.Popen(cmd, 
+                                  stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE,
+                                  text=True)
         
-        # We can't await directly due to rclpy's event loop, so we'll return immediately
-        # The service call will complete in the background
+        # Return success immediately without waiting for completion
         return {
             "status": "success",
-            "message": f"Map saving initiated with name: {map_name}",
-            "details": "The map will be saved to the ROS package directory."
+            "message": f"Map saving started with name: {map_name}",
+            "details": f"The map will be saved to {map_path}.pgm with a .yaml configuration file"
         }
     except Exception as e:
         return {

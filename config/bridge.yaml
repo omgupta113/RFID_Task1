@@ -38,7 +38,7 @@
   direction: "GZ_TO_ROS"
 
 - ros_topic_name: "/dummy_sensor"
-  gz_topic_name: "/world/empty/model/robit/link/base_footprint/sensor/a_dummy_sensor/dummy"
+  gz_topic_name: "/dummy_sensor_topic"
   ros_type_name: "std_msgs/msg/String"
   gz_type_name: "gz.msgs.StringMsg"
   direction: "GZ_TO_ROS"
